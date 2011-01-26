@@ -1,0 +1,46 @@
+# This is included into AdminUI and defines editing regions for the site administration pages.
+# Note that the AdminUI object is a singleton and it is not sufficient to add to its initialization routines: you also have to call load_default_site_regions on the admin singleton that has already been defined.
+
+module ExtendedRoles::AdminUI
+
+ def self.included(base)
+   base.class_eval do
+
+      attr_accessor :role
+      alias_method :roles, :role
+      
+      protected
+
+        # The role-admin pages have these regions:
+        
+        # Edit view:
+        # * main: edit_header, edit_form
+        # * form: edit_name edit_domain edit_homepage
+        # * form_bottom: edit_timestamp edit_buttons
+
+        # Index view
+        # * thead: title_header modify_header
+        # * tbody: title_cell modify_cell (repeating row)
+        # * bottom: new_button
+
+        def load_default_site_regions
+          returning OpenStruct.new do |role|
+            role.edit = Radiant::AdminUI::RegionSet.new do |edit|
+              edit.main.concat %w{edit_header edit_form}
+              edit.form.concat %w{edit_name edit_permissions}
+              edit.form_bottom.concat %w{edit_timestamp edit_buttons}
+            end
+            role.index = Radiant::AdminUI::RegionSet.new do |index|
+              index.thead.concat %w{title_header modify_header}
+              index.tbody.concat %w{title_cell modify_cell}
+              index.bottom.concat %w{new_button}
+            end
+            role.remove = role.index
+            role.new = role.edit
+          end
+        end
+      
+    end
+  end
+end
+

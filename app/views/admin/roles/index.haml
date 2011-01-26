@@ -1,0 +1,28 @@
+- include_stylesheet('admin/multi_site')
+= render_region :top 
+
+%h1 Roles
+
+%table{:class => "index", :cellspacing => "0"}
+  %thead
+    %tr
+      - render_region :thead do |thead|
+        - thead.title_header do
+          %th.role Name
+        - thead.modify_header do
+          %th.remove Modify
+  %tbody
+    - @roles.each do |role|
+      %tr.node.level-1
+        - render_region :tbody do |tbody|
+          - tbody.title_cell do
+            %td.site
+              = link_to role.name, edit_admin_role_path(role)
+          - tbody.modify_cell do
+            %td.remove
+              = link_to image("remove.png", :alt => "Remove"), admin_role_path(role), :method => :delete, :confirm => "Are you sure you want to permanently remove #{role.name}?"
+
+- render_region :bottom do |bottom|
+  - bottom.new_button do
+    %p
+      = link_to "New Role", new_admin_role_path
