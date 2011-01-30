@@ -12,7 +12,7 @@
       - @role.find_all_permission_methods.each do |permission_method|
         %p.permission
           %label{:for => "role_#{permission_method}"}= "#{permission_method.humanize}?"
-          = f.check_box permission_method.to_sym, :class => 'checkbox'
+          = f.check_box permission_method.gsub(/=/, ''), :class => 'checkbox'
   
   - render_region :form_bottom do |form_bottom|
     - form_bottom.edit_timestamp do

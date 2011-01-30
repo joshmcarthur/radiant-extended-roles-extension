@@ -10,10 +10,18 @@ class Role < ActiveRecord::Base
   
   before_save :tokenize_permissions
   #after_initialize :safe_falsify_all_permissions
-  after_find :permission_tokens_to_methods
   
-  PERMISSION_TYPES = [:can_edit, :can_delete, :can_create, :can_manage]
-  OBJECT_TYPES = [:page, :extension, :theme, :user, :page_part]
+  
+  def after_find
+    return if self.permission_tokens.nil?
+    JSON.parse(self.permission_tokens).each do |key, value|
+      self.class.send(:attr_accessor, key) unless self.class.respond_to?(key)
+      self.send(key + '=', value)
+    end
+  end
+  
+  PERMISSION_TYPES = [:can_manage]
+  OBJECT_TYPES = [:pages, :layouts, :users, :snippets, :extensions]
   PERMISSION_TYPES.each do |permission|
     OBJECT_TYPES.each do |object_type|
       attr_accessor [permission.to_s, object_type.to_s].join("_").to_sym
@@ -24,12 +32,7 @@ class Role < ActiveRecord::Base
   #TODO find a more elegant regex to skip over write accessors (can_something ends with equals)
   def find_all_permission_methods
     self.methods.select do |method_name|
-      method_name.to_s! unless method_name.is_a?(String)
-      (
-        method_name =~ /\Acan_edit_\w+/ ||
-        method_name =~ /\Acan_delete_/ ||
-        method_name =~ /\Acan_create_/
-      ) && [true, false].include?(self.send(method_name.gsub("=", "")))
+      method_name =~ /\Acan_\w+[^=]\Z/
     end
   end
   
@@ -50,17 +53,9 @@ class Role < ActiveRecord::Base
     permissions_hash = {}
     permissions.each do |permission|
       permission.to_s! unless permission.is_a?(String)
-      #FIXME better selection regex for finding permission methods!
-      permissions_hash[permission] = self.send(permission.gsub("=", ""))
+      permissions_hash[permission] = self.send(permission)
     end
     self.permission_tokens = permissions_hash.to_json
   end
   
-  #Sets up correctly instantiated methods with boolean values by parsing JSON'd hash of permissions stored in the database
-  def permission_tokens_to_methods
-    JSON.parse(self.permission_tokens).each do |key, value|
-      self.send(:attr_accessor, key) unless self.responds_to?(key)
-      self.send(key, value)
-    end
-  end
 end
