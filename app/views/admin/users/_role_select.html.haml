@@ -1,0 +1,3 @@
+%p
+  = f.label :roles, t('roles'), :class => 'select'
+  = f.select :roles, options_for_select(Role.all.map { |r| [r.name, r.id]}), {}, {:multiple => 'multiple', :class => 'select'}

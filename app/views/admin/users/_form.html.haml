@@ -26,8 +26,7 @@
     
     - form.edit_roles do
       %p
-        = f.label :roles, t('roles'), :class => 'select'
-        = f.select :roles, options_for_select(Role.all.map { |r| [r.name, r.id]}), :multiple => true, :class => 'select'
+        = render :partial => 'role_select', :locals => {:f => f}
     
     - form.edit_locale do
       %p

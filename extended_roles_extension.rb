@@ -16,6 +16,15 @@ class ExtendedRolesExtension < Radiant::Extension
   # See your config/routes.rb file in this extension to define custom routes
   
   def activate
+    
+    if respond_to?(:tab)
+      tab("Settings") do
+        add_item "Roles", "/admin/roles"
+      end
+    else
+      admin.tabs.add "Roles", "/admin/roles"
+    end
+    
     User.send(:include, ExtendedRoles::UserExt)
     User.send(:has_and_belongs_to_many, 'roles')
     
@@ -27,15 +36,17 @@ class ExtendedRolesExtension < Radiant::Extension
         user.roles.map { |r| r.name }.join(', ')
       end
     end
-    
-    tab 'Settings' do
-       add_item "Roles", "/admin/roles", :after => "Users"
-    end
+  
     
     unless defined? admin.role
       Radiant::AdminUI.send :include, ExtendedRoles::AdminUI 
       admin.role = Radiant::AdminUI.load_default_site_regions
     end
     
+    #TODO work out how to do this without overriding the views
+    #unless admin.users.edit.form && admin.users.edit.form.include?('role_select')
+    #  admin.users.edit.delete :edit_roles
+    #  admin.users.edit.add :edit_roles, 'role_select', :after => 'edit_password'
+    #end
   end
 end
